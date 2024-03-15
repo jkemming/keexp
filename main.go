@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 
 	"github.com/tobischo/gokeepasslib/v3"
@@ -61,8 +62,8 @@ func main() {
 				// TODO Print out the entry's UUID
 				fmt.Fprintln(os.Stderr, "Field could not be found: "+export.Field)
 			}
-			// TODO Handle escaping
-			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+value+"'")
+			escapedValue := strings.ReplaceAll(value, "'", "'\\''")
+			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+escapedValue+"'")
 		}
 	}
 }
