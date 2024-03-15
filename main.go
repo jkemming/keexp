@@ -2,18 +2,13 @@ package main
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"syscall"
 
 	"github.com/tobischo/gokeepasslib/v3"
 	"golang.org/x/term"
 )
-
-// TODO Get config from `${XDG_CONFIG_HOME}/keexp/config.json` with fallback to `~/.config/keexp/config.json`
-const configPath = "/home/jkemming/Desktop/config.json"
 
 type (
 	Config struct {
@@ -31,7 +26,7 @@ type (
 )
 
 func main() {
-	config, err := readConfig(configPath)
+	config, err := readConfig()
 	checkError(err)
 
 	fmt.Fprint(os.Stderr, "Enter password for ", config.Database, ": ")
@@ -70,22 +65,6 @@ func main() {
 			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+value+"'")
 		}
 	}
-}
-
-func readConfig(path string) (*Config, error) {
-	configFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	configJson, err := io.ReadAll(configFile)
-	if err != nil {
-		return nil, err
-	}
-
-	var config Config
-	err = json.Unmarshal(configJson, &config)
-	return &config, err
 }
 
 func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*gokeepasslib.Entry {
