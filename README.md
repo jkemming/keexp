@@ -9,9 +9,7 @@
 	* By default, the path is `~/.config/keexp/config.json`
 * Set an alias so the exported variables will actually be set in the shell you're running `keexp` in:
 
-		```shell
 		# Bash
 		alias keexp='keexp | source /dev/stdin'
 		# fish
 		alias keexp '/usr/local/bin/keexp | source'
-		```
