@@ -29,14 +29,19 @@ func readConfig() (*Config, error) {
 }
 
 func getConfigPath() (string, error) {
-	configBasePath, configHomeSet := os.LookupEnv("XDG_CONFIG_HOME")
-	if !configHomeSet {
-		userHome, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		configBasePath = path.Join(userHome, ".config")
+	configPath, configPathSet := os.LookupEnv("KEEXP_CONFIG_PATH")
+	if configPathSet {
+		return path.Clean(configPath), nil
 	}
 
-	return path.Join(configBasePath, "keexp/config.json"), nil
+	xdgConfigHome, xdgConfigHomeSet := os.LookupEnv("XDG_CONFIG_HOME")
+	if xdgConfigHomeSet {
+		return path.Join(xdgConfigHome, "keexp/config.json"), nil
+	}
+
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(userHome, ".config/keexp/config.json"), nil
 }
