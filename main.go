@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -12,10 +15,6 @@ import (
 )
 
 type (
-	Config struct {
-		Database string        `json:"database"`
-		Entries  []ConfigEntry `json:"entries"`
-	}
 	ConfigEntry struct {
 		Uuid    string               `json:"uuid"`
 		Exports []ConfigEntryExports `json:"exports"`
@@ -27,15 +26,23 @@ type (
 )
 
 func main() {
-	config, err := readConfig()
+	if len(os.Args) < 3 || slices.Contains(os.Args[1:3], "") {
+		fmt.Fprint(os.Stderr, "Missing arguments.\nUsage: keexp <database_path> <config_path>\n")
+		os.Exit(1)
+	}
+
+	databasePath := os.Args[1]
+	configPath := os.Args[2]
+
+	config, err := readConfig(configPath)
 	checkError(err)
 
-	fmt.Fprint(os.Stderr, "Enter password for ", config.Database, ": ")
+	fmt.Fprint(os.Stderr, "Enter password for ", databasePath, ": ")
 	passwordBytes, err := term.ReadPassword(syscall.Stdin)
 	fmt.Fprintln(os.Stderr)
 	checkError(err)
 
-	databaseFile, err := os.Open(config.Database)
+	databaseFile, err := os.Open(databasePath)
 	checkError(err)
 
 	database := gokeepasslib.NewDatabase()
@@ -48,7 +55,7 @@ func main() {
 
 	entriesByUuid := getEntriesByUuid(database)
 
-	for _, configEntry := range config.Entries {
+	for _, configEntry := range config {
 		uuidBytes, err := hex.DecodeString(configEntry.Uuid)
 		checkError(err)
 		if len(uuidBytes) != 16 {
@@ -59,13 +66,28 @@ func main() {
 		for _, export := range configEntry.Exports {
 			value, valueExists := valuesByKey[export.Field]
 			if !valueExists {
-				// TODO Print out the entry's UUID
 				fmt.Fprintln(os.Stderr, "Field could not be found: "+export.Field)
 			}
 			escapedValue := strings.ReplaceAll(value, "'", "'\\''")
 			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+escapedValue+"'")
 		}
 	}
+}
+
+func readConfig(configPath string) ([]ConfigEntry, error) {
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	configJson, err := io.ReadAll(configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var config []ConfigEntry
+	err = json.Unmarshal(configJson, &config)
+	return config, err
 }
 
 func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*gokeepasslib.Entry {
@@ -75,7 +97,6 @@ func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*go
 	for len(groups) > 0 {
 		for _, entry := range groups[0].Entries {
 			if entriesByUuid[entry.UUID] != nil {
-				// TODO Print out the entry's UUID
 				fmt.Fprintln(os.Stderr, "Warning: Found entries with duplicate UUID")
 				continue
 			}
@@ -94,7 +115,6 @@ func getValuesByKey(entry *gokeepasslib.Entry) map[string]string {
 	valuesByKey := make(map[string]string, len(entry.Values))
 	for _, value := range entry.Values {
 		if valuesByKey[value.Key] != "" {
-			// TODO Print out the entry's UUID
 			fmt.Fprintln(os.Stderr, "Warning: Found values with duplicate key")
 			continue
 		}

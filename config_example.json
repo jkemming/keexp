@@ -1,27 +1,24 @@
-{
-	"database": "/path/to/database.kdbx",
-	"entries": [
-		{
-			"uuid": "3631eea79d4047ab944281219fe9f966",
-			"exports": [
-				{
-					"field": "UserName",
-					"variable": "EXAMPLE_USERNAME"
-				},
-				{
-					"field": "Password",
-					"variable": "EXAMPLE_PASSWORD"
-				}
-			]
-		},
-		{
-			"uuid": "f8fdb2dbd12e45c0acf571300235ab8d",
-			"exports": [
-				{
-					"field": "Custom Propery",
-					"variable": "EXAMPLE_CUSTOM_PROPERTY"
-				}
-			]
-		}
-	]
-}
+[
+	{
+		"uuid": "3631eea79d4047ab944281219fe9f966",
+		"exports": [
+			{
+				"field": "UserName",
+				"variable": "EXAMPLE_USERNAME"
+			},
+			{
+				"field": "Password",
+				"variable": "EXAMPLE_PASSWORD"
+			}
+		]
+	},
+	{
+		"uuid": "f8fdb2dbd12e45c0acf571300235ab8d",
+		"exports": [
+			{
+				"field": "Custom Propery",
+				"variable": "EXAMPLE_CUSTOM_PROPERTY"
+			}
+		]
+	}
+]
