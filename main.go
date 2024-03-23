@@ -57,16 +57,34 @@ func main() {
 
 	for _, configEntry := range config {
 		uuidBytes, err := hex.DecodeString(configEntry.Uuid)
-		checkError(err)
-		if len(uuidBytes) != 16 {
-			fmt.Fprintln(os.Stderr, "Invalid UUID: "+configEntry.Uuid)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: UUID \"%s\" could not be decoded: %s\n", configEntry.Uuid, err)
+			continue
 		}
+
+		uuidLength := len(uuidBytes)
+		if uuidLength != 16 {
+			fmt.Fprintf(os.Stderr, "Warning: UUID \"%s\" has invalid length: %d\n", configEntry.Uuid, uuidLength)
+			continue
+		}
+
 		uuid := gokeepasslib.UUID(uuidBytes)
-		valuesByKey := getValuesByKey(entriesByUuid[uuid])
+		entry, entryExists := entriesByUuid[uuid]
+		if !entryExists {
+			fmt.Fprintf(os.Stderr, "Warning: Entry with UUID \"%s\" could not be found\n", configEntry.Uuid)
+			continue
+		}
+
+		valuesByKey := getValuesByKey(entry)
 		for _, export := range configEntry.Exports {
 			value, valueExists := valuesByKey[export.Field]
 			if !valueExists {
-				fmt.Fprintln(os.Stderr, "Field could not be found: "+export.Field)
+				fmt.Fprintf(os.Stderr, "Warning: Field \"%s\" for entry with UUID \"%s\" could not be found\n", export.Field, configEntry.Uuid)
+				continue
+			}
+			if value == "" {
+				fmt.Fprintf(os.Stderr, "Warning: Field \"%s\" for entry with UUID \"%s\" is empty\n", export.Field, configEntry.Uuid)
+				continue
 			}
 			escapedValue := strings.ReplaceAll(value, "'", "'\\''")
 			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+escapedValue+"'")
@@ -97,7 +115,7 @@ func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*go
 	for len(groups) > 0 {
 		for _, entry := range groups[0].Entries {
 			if entriesByUuid[entry.UUID] != nil {
-				fmt.Fprintln(os.Stderr, "Warning: Found entries with duplicate UUID")
+				fmt.Fprintf(os.Stderr, "Warning: Found multiple entries with UUID \"%s\"\n", entry.UUID)
 				continue
 			}
 			entriesByUuid[entry.UUID] = &entry
@@ -115,7 +133,7 @@ func getValuesByKey(entry *gokeepasslib.Entry) map[string]string {
 	valuesByKey := make(map[string]string, len(entry.Values))
 	for _, value := range entry.Values {
 		if valuesByKey[value.Key] != "" {
-			fmt.Fprintln(os.Stderr, "Warning: Found values with duplicate key")
+			fmt.Fprintf(os.Stderr, "Warning: Found values with duplicate key \"%s\" for entry with UUID \"%s\"\n", value.Key, entry.UUID)
 			continue
 		}
 		valuesByKey[value.Key] = value.Value.Content
@@ -125,7 +143,7 @@ func getValuesByKey(entry *gokeepasslib.Entry) map[string]string {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(1)
 	}
 }
