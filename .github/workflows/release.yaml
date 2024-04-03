@@ -32,3 +32,5 @@ jobs:
         run: mage build
       - name: Release
         run: gh release create ${{ github.event.inputs.version }} keexp --target ${{ github.event.inputs.commit }}
+        env:
+          GH_TOKEN: "${{ github.token }}"
