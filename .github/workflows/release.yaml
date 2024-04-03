@@ -6,19 +6,20 @@ on:
       version:
         description: Version to be released
         required: true
-      commit:
-        description: Commit to be released
-        required: false
+      ref:
+        description: Branch or commit to be released
+        required: true
+        default: main
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - name: Check out commit
+      - name: Check out ref
         uses: actions/checkout@v4
         with:
-          ref: "${{ github.event.inputs.commit }}"
+          ref: "${{ github.event.inputs.ref }}"
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -31,6 +32,6 @@ jobs:
       - name: Build Project
         run: mage build
       - name: Release
-        run: gh release create ${{ github.event.inputs.version }} keexp --target ${{ github.event.inputs.commit }}
+        run: gh release create ${{ github.event.inputs.version }} keexp --target ${{ github.event.inputs.ref }}
         env:
           GH_TOKEN: "${{ github.token }}"
