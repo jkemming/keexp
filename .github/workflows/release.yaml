@@ -6,10 +6,6 @@ on:
       version:
         description: Version to be released
         required: true
-      ref:
-        description: Branch or commit to be released
-        required: true
-        default: main
 
 permissions:
   contents: write
@@ -21,8 +17,6 @@ jobs:
     steps:
       - name: Check out ref
         uses: actions/checkout@v4
-        with:
-          ref: "${{ github.event.inputs.ref }}"
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -32,9 +26,9 @@ jobs:
         with:
           version: "v1.15.0"
           install-only: true
-      - name: Build Project
+      - name: Build executable
         run: mage build
-      - name: Release
-        run: gh release create ${{ github.event.inputs.version }} keexp --target ${{ github.event.inputs.ref }}
+      - name: Create release
+        run: gh release create ${{ github.event.inputs.version }} keexp --target ${GITHUB_REF}
         env:
           GH_TOKEN: "${{ github.token }}"
