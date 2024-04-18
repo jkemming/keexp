@@ -9,3 +9,7 @@
 		keexp() { keexp "$1" "$2" | source /dev/stdin; }
 		# fish
 		function keexp; /usr/local/bin/keexp $argv[1] $argv[2] | source; end
+
+* Run keexp:
+
+		keexp /path/to/database.kdbx /path/to/config.json
