@@ -37,7 +37,7 @@ func main() {
 	config, err := readConfig(configPath)
 	checkError(err)
 
-	fmt.Fprint(os.Stderr, "Enter password for ", databasePath, ": ")
+	fmt.Fprint(os.Stderr, "Enter password: ")
 	passwordBytes, err := term.ReadPassword(syscall.Stdin)
 	fmt.Fprintln(os.Stderr)
 	checkError(err)
