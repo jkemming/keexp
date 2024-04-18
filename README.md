@@ -1,4 +1,8 @@
-# Usage
+# keexp
+
+keexp is a small program for exporting data from KeePass databases to environment variables.
+
+## Usage
 
 * Create a config file based on `config_example.json`.
 	* An entry's UUID can be viewed on its properties tab.
