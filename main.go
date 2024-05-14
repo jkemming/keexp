@@ -87,7 +87,7 @@ func main() {
 				continue
 			}
 			escapedValue := strings.ReplaceAll(value, "'", "'\\''")
-			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+escapedValue+"'")
+			fmt.Fprintln(os.Stdout, "export "+export.Variable+"='"+escapedValue+"';")
 		}
 	}
 }
