@@ -22,7 +22,7 @@ jobs:
         with:
           go-version: ">=1.23 <1.24"
       - name: Set up just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v3
       - name: Build executable
         run: just build
       - name: Create release
