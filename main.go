@@ -23,6 +23,15 @@ type (
 		Field    string `json:"field"`
 		Variable string `json:"variable"`
 	}
+	Entry struct {
+		isDeleted bool
+		entity    gokeepasslib.Entry
+	}
+	Group struct {
+		isDeleted bool
+		level     int
+		entity    gokeepasslib.Group
+	}
 )
 
 func main() {
@@ -79,6 +88,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Warning: Entry with UUID \"%s\" could not be found\n", configEntry.Uuid)
 			continue
 		}
+		if entry.isDeleted {
+			fmt.Fprintf(os.Stderr, "Warning: Entry with UUID \"%s\" is in recycle bin\n", configEntry.Uuid)
+		}
 
 		valuesByKey := getValuesByKey(entry)
 		for _, export := range configEntry.Exports {
@@ -113,32 +125,56 @@ func readConfig(configPath string) ([]ConfigEntry, error) {
 	return config, err
 }
 
-func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*gokeepasslib.Entry {
-	entriesByUuid := make(map[gokeepasslib.UUID]*gokeepasslib.Entry)
-	groups := database.Content.Root.Groups
+func getEntriesByUuid(database *gokeepasslib.Database) map[gokeepasslib.UUID]*Entry {
+	entriesByUuid := make(map[gokeepasslib.UUID]*Entry)
+	groups := make([]Group, len(database.Content.Root.Groups))
+	for i, group := range database.Content.Root.Groups {
+		groups[i] = Group{
+			isDeleted: false,
+			level:     0,
+			entity:    group,
+		}
+	}
 
 	for len(groups) > 0 {
-		for _, entry := range groups[0].Entries {
+		currentGroup := groups[0]
+		isRecycleBin := currentGroup.level == 1 && currentGroup.entity.Name == "Recycle Bin"
+		isDeleted := currentGroup.isDeleted || isRecycleBin
+
+		for _, entry := range currentGroup.entity.Entries {
 			if entriesByUuid[entry.UUID] != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Found multiple entries with UUID \"%s\"\n", entry.UUID)
 				continue
 			}
-			entriesByUuid[entry.UUID] = &entry
+			entriesByUuid[entry.UUID] = &Entry{
+				isDeleted: isDeleted,
+				entity:    entry,
+			}
 		}
 
-		groups = append(groups, groups[0].Groups...)
-		groups[0] = groups[len(groups)-1]
-		groups = groups[:len(groups)-1]
+		subGroupCount := len(currentGroup.entity.Groups)
+		updatedGroups := make([]Group, len(groups)+subGroupCount-1)
+		for i, subGroup := range currentGroup.entity.Groups {
+			updatedGroups[i] = Group{
+				isDeleted: isDeleted,
+				level:     currentGroup.level + 1,
+				entity:    subGroup,
+			}
+		}
+		for i := 1; i < len(groups); i++ {
+			updatedGroups[subGroupCount+i-1] = groups[i]
+		}
+		groups = updatedGroups
 	}
 
 	return entriesByUuid
 }
 
-func getValuesByKey(entry *gokeepasslib.Entry) map[string]string {
-	valuesByKey := make(map[string]string, len(entry.Values))
-	for _, value := range entry.Values {
+func getValuesByKey(entry *Entry) map[string]string {
+	valuesByKey := make(map[string]string, len(entry.entity.Values))
+	for _, value := range entry.entity.Values {
 		if valuesByKey[value.Key] != "" {
-			fmt.Fprintf(os.Stderr, "Warning: Found values with duplicate key \"%s\" for entry with UUID \"%s\"\n", value.Key, entry.UUID)
+			fmt.Fprintf(os.Stderr, "Warning: Found values with duplicate key \"%s\" for entry with UUID \"%s\"\n", value.Key, entry.entity.UUID)
 			continue
 		}
 		valuesByKey[value.Key] = value.Value.Content
