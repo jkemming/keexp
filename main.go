@@ -31,6 +31,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if len(os.Args) > 3 {
+		fmt.Fprint(os.Stderr, "Too many arguments.\nUsage: keexp <database_path> <config_path>\n")
+		os.Exit(1)
+	}
+
 	databasePath := os.Args[1]
 	configPath := os.Args[2]
 
