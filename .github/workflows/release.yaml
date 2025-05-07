@@ -26,6 +26,6 @@ jobs:
       - name: Build executable
         run: just build
       - name: Create release
-        run: gh release create ${{ github.event.inputs.version }} keexp --target ${GITHUB_REF}
+        run: gh release create ${{ github.event.inputs.version }} keexp --target ${GITHUB_REF} --title ${{ github.event.inputs.version }}
         env:
           GH_TOKEN: "${{ github.token }}"
