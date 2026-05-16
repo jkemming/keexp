@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ">=1.25 <1.26"
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
       - name: Build for linux/amd64
         run: mise run build --os linux --arch amd64
       - name: Create release
