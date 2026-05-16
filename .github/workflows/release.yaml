@@ -15,17 +15,14 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - name: Check out ref
-        uses: actions/checkout@v6
-      - name: Set up Go
-        uses: actions/setup-go@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version: ">=1.25 <1.26"
-      - name: Set up just
-        uses: extractions/setup-just@v4
-      - name: Build executable
-        run: just build
+      - uses: jdx/mise-action@v3
+      - name: Build for linux/amd64
+        run: mise run build --os linux --arch amd64
       - name: Create release
-        run: gh release create ${{ github.event.inputs.version }} keexp --target ${GITHUB_REF} --title ${{ github.event.inputs.version }}
+        run: gh release create ${{ github.event.inputs.version }} keexp-.* --target ${GITHUB_REF} --title ${{ github.event.inputs.version }}
         env:
           GH_TOKEN: "${{ github.token }}"

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#USAGE flag "--os <os>" help="Operating system to build for" default="linux"
+#USAGE flag "--arch <arch>" help="Architecture to build for" default="amd64"
+
+OS="${usage_os?}"
+ARCH="${usage_arch?}"
+
+env GOOS=${OS} GOARCH=${ARCH} go build -o "keexp-${OS}-${ARCH}" jkemming.com/keexp
