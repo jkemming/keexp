@@ -23,6 +23,6 @@ jobs:
       - name: Build for linux/amd64
         run: mise run build --os linux --arch amd64
       - name: Create release
-        run: gh release create ${{ github.event.inputs.version }} keexp-.* --target ${GITHUB_REF} --title ${{ github.event.inputs.version }}
+        run: gh release create ${{ github.event.inputs.version }} keexp-* --target ${GITHUB_REF} --title ${{ github.event.inputs.version }}
         env:
           GH_TOKEN: "${{ github.token }}"
