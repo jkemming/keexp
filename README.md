@@ -1,3 +1,6 @@
+> [!WARNING]  
+> This project is archived in favor of [kgrant](https://github.com/jkemming/kgrant), which offers significantly better security.
+
 # keexp
 
 keexp is a small program for exporting data from KeePass databases to environment variables.
